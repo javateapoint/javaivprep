@@ -1,7 +1,7 @@
 
 # Java Interview Questions Asked 2025
 
-Coding:
+## Coding:
 Find longest non repeating substring from given String 
 
 Find Frequeny/Count of each character in a String using Java 8 Stream Api  [abccddae]
