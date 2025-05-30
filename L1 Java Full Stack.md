@@ -54,21 +54,21 @@ If the question meant “an array of strings” (i.e. process each string or all
 # 3. Java 8 Features
 Answer: Java 8 introduced several transformative features:
 
-Lambda Expressions: Allow concise inline implementations of interfaces with a single abstract method.
+* Lambda Expressions:  Allow concise inline implementations of interfaces with a single abstract method.
 
-Streams API: Enable functional-style operations (filter, map, reduce) on collections.
+* Streams API: Enable functional-style operations (filter, map, reduce) on collections.
 
-Default and Static Methods in Interfaces: Let you add methods to interfaces without breaking existing implementations.
+* Default and Static Methods in Interfaces: Let you add methods to interfaces without breaking existing implementations.
 
-Functional Interfaces: Annotated with @FunctionalInterface (like Runnable, Callable), serving as targets for lambda expressions.
+* Functional Interfaces: Annotated with @FunctionalInterface (like Runnable, Callable), serving as targets for lambda expressions.
 
-Optional Class: Helps avoid explicit null checks.
+* Optional Class: Helps avoid explicit null checks.
 
-New Date/Time API (java.time): Provides a modern approach to handling dates and times.
+* New Date/Time API (java.time): Provides a modern approach to handling dates and times.
 
-Method References: Simplify lambda expressions further by referring directly to methods.
+* Method References: Simplify lambda expressions further by referring directly to methods.
 
-Parallel Streams: Provide an easy way to process data concurrently.
+* Parallel Streams: Provide an easy way to process data concurrently.
 
 Explanation: With these features, Java 8 shifted much of the language’s idioms toward functional programming, improving expressiveness and potentially performance.
 
