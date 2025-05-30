@@ -3,7 +3,7 @@
 # 1. Square and Print in Order Using Java 8
 Answer: Since the list is an ordered collection and you are using a sequential stream, the encounter order is preserved. For example:
 
-java
+```java
 import java.util.List;
 
 public class SquarePrinter {
@@ -14,12 +14,13 @@ public class SquarePrinter {
             .forEach(System.out::println);
     }
 }
+```
 Explanation: Here, List.of(...) creates an immutable list with a defined order. The stream pipeline uses map (an intermediate operation) to square each number. When the terminal operation (forEach) is called, it processes the elements in the list’s order. If you switched to a parallel stream, you’d need to use forEachOrdered() to ensure order preservation.
 
 # 2. Write Code to Find the First Non-Repeated Character from an Array of Strings Using Java 8
 Answer: Assuming you want to find the first non-repeated character from a single String, you can leverage streams and a LinkedHashMap (which preserves insertion order):
 
-java
+```java
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -39,6 +40,7 @@ public class FirstNonRepeatedChar {
         System.out.println("First non-repeated character: " + result);
     }
 }
+```
 Explanation:
 
 Step 1: Convert the string to a stream of characters.
@@ -152,7 +154,7 @@ Explanation: Fail-fast iterators help catch concurrent modification errors early
 # 15. Write a Singleton Class
 Answer: A common, thread-safe implementation is the double-checked locking pattern:
 
-java
+```java
 public class Singleton {
     // volatile to ensure proper visibility of changes across threads
     private static volatile Singleton instance;
@@ -175,6 +177,7 @@ public class Singleton {
         return instance;
     }
 }
+```
 Explanation: This implementation minimizes synchronization overhead while ensuring that only one instance is created. The use of volatile guarantees visibility among threads.
 
 # 16. How to Break the Singleton Pattern and the Best Way to Create a Singleton
@@ -190,11 +193,12 @@ Multiple ClassLoaders: Leading to different copies in the same JVM.
 
 Best Practice: Using an enum singleton is the most robust solution. For example:
 
-java
+```java
 public enum SingletonEnum {
     INSTANCE;
     // you can add methods if needed
 }
+```
 Explanation: Enum singletons are inherently thread-safe, protect against reflection and serialization attacks, and are succinct.
 
 # 17. What Is an Enum and Can We Have a Constructor for Enums?
@@ -363,7 +367,7 @@ If a field holds a reference to a mutable object, return a defensive copy in any
 
 Example:
 
-java
+```java
 public final class ImmutablePerson {
     private final String name;
     private final int age;
@@ -382,6 +386,7 @@ public final class ImmutablePerson {
         return age;
     }
 }
+```
 # 35. How to Check if a Memory Leak Has Occurred in an Application
 Answer: You can diagnose memory leaks by:
 
