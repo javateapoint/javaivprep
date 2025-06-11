@@ -89,6 +89,106 @@ public class ApiKeyResolverConfig {
 - burstCapacity: maximum tokens allowed => max burst
 
 
+#### In Spring Cloud Gateway’s built-in rate-limiter, the KeyResolver is the pluggable strategy that extracts a “key” from each incoming request. That key is what the rate-limiter uses to group and count requests—for example, to enforce “5 requests per second per key.” When you choose to rate-limit by API key, you tell the gateway:
+
+1. Which HTTP header (or other attribute) holds the client’s API key,
+
+2. How to pull it out, and
+
+3. What default to use if it’s missing.
+
+### What KeyResolver Does
+
+**Input:**  
+- A `ServerWebExchange` (i.e., the full HTTP request + response context).
+
+**Output:**  
+- A `Mono<String>` that emits the "key" for this request.
+
+**Usage:**  
+- Spring Cloud Gateway uses this key in Redis (or another datastore) to maintain token-bucket counters per key.
+
+
+### Why Use X-API-KEY in the Header
+
+- **Standard Practice:**  
+  Most public APIs require clients to send an API key in a header named something like `X-API-KEY`, `Authorization`, or `X-Auth-Token`.
+
+- **Separation of Concerns:**  
+  Your gateway can extract the key without having to inspect a JWT or cookie, simplifying authentication processes.
+
+- **Flexibility:**  
+  You can associate each API key with a customer in your own database, apply custom limits per key, revoke keys, etc.
+
+ ### Implementing an ApiKeyResolver
+```java
+
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import reactor.core.publisher.Mono;
+
+@Configuration
+public class ApiKeyResolverConfig {
+  
+  /**
+   * Pulls the X-API-KEY header value out of the request.
+   * If absent or empty, defaults to "anonymous".
+   */
+  @Bean
+  public KeyResolver apiKeyResolver() {
+    return exchange -> 
+      Mono.justOrEmpty(
+          exchange.getRequest()
+                  .getHeaders()
+                  .getFirst("X-API-KEY"))
+          // if the header is missing or blank, fall back:
+          .filter(key -> !key.isBlank())
+          .defaultIfEmpty("anonymous");
+  }
+}
+
+
+```
+### Explanation of Key Extraction and Handling
+
+- **`getFirst("X-API-KEY")`:**  
+  Retrieves the first value of the `"X-API-KEY"` header if it is present.
+
+- **Wrapping in `Mono.justOrEmpty(...)`:**  
+  Converts the header value into a reactive stream, ensuring compatibility with reactive pipelines.
+
+- **`.filter(...)`:**  
+  Excludes blank values, ensuring that only valid API key strings proceed.
+
+- **`.defaultIfEmpty("anonymous")`:**  
+  Guarantees that every request is assigned a key. If no valid key is provided, it defaults to `"anonymous"`, preventing errors in the rate limiter.
+
+
+### Security & Best Practices
+
+## Validate & Sanitize
+- If you expect keys to follow a specific pattern (e.g., UUIDs), add a filter such as `.filter(key -> key.matches(...))`.
+- Return a special fallback or reject the request if the API key does not meet the expected pattern.
+
+## Reject Missing Keys (Optional)
+- Instead of defaulting to `"anonymous"`, use `.switchIfEmpty(Mono.error(new ResponseStatusException(401, "API key required")))` to reject requests without an API key.
+
+## Key Management
+- Store valid API keys (and their per-key rate limits) in a secure database or an AWS DynamoDB table.
+- Implement a custom KeyResolver that not only extracts the key but also validates it against your store and attaches relevant attributes (like tier) to the exchange for downstream filters.
+
+## Rotate & Revoke
+- Support key rotation by expiring old keys in your store.
+- This approach allows your gateway to handle key rotation without redeployment; invalid keys will either fail resolution or hit the “anonymous” bucket on the next request.
+
+## Use HTTPS
+- Always run your gateway behind TLS to ensure that the header cannot be eavesdropped or spoofed in transit.
+
+
+
+
+
 
 ### Customizing Response on Limit Exceeded
 
