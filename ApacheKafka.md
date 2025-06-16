@@ -250,6 +250,10 @@ public class MessageConsumer {
 
 
 
+
+
+
+
 # Real-Time Example: Improved Kafka Consumer with Concurrency and Batch Processing
 
 # Improving Kafka Consumer Performance Under Increased Load
@@ -279,6 +283,47 @@ When an increased load from the publisher causes more messages to be sent to Kaf
       return factory;
   }
   ```
+
+# What Happens When You Call `factory.setConcurrency(4)`
+
+In Spring Kafka, the `setConcurrency(int concurrency)` method on the `ConcurrentKafkaListenerContainerFactory` configures how many concurrent Kafka consumer threads will be created for a given listener container. Here’s what it entails:
+
+1. **Multiple Listener Containers:**  
+   Setting concurrency to 4 instructs Spring to create 4 separate `KafkaMessageListenerContainer` instances for that listener. Each container runs on its own thread.
+
+2. **Parallel Processing:**  
+   With 4 consumer instances, you can process messages concurrently. If your topic has at least 4 partitions, each consumer instance will be assigned one partition from which to fetch messages in parallel.
+
+3. **Increased Throughput:**  
+   By handling multiple partitions concurrently, the overall message consumption rate can increase significantly. This helps in situations where the publisher's load is high.
+
+4. **Partition to Consumer Mapping:**  
+   - Each consumer instance within the listener container is responsible for consuming messages from one or more partitions.
+   - If the number of partitions is less than the concurrency level, some consumer instances may remain idle.
+
+5. **Thread Management:**  
+   The concurrency setting determines the number of threads that are used for polling Kafka. More threads allow for greater parallelism but also require sufficient CPU and memory resources.
+
+## Example Scenario
+
+Assume you have a topic with 4 partitions.  
+- With `setConcurrency(4)`, each of the 4 consumer instances will get one partition, and all partitions will be processed in parallel.
+- If you increase the number of partitions to 8 and keep concurrency at 4, each consumer instance might process 2 partitions concurrently.
+
+## Summary
+
+Using `factory.setConcurrency(4)` is a way to increase the parallelism of your Kafka consumer within a consumer group:
+- It allows messages to be processed faster by creating multiple consumer threads.
+- It is especially useful when dealing with high-volume data streams.
+- Always ensure that the topic’s partition count is aligned with the configured concurrency for optimal performance.
+
+This setting is one of several tuning parameters that can be adjusted to meet the performance requirements of your event-driven microservices.
+
+
+
+
+
+  
 
 ### 2. Tune Consumer Configuration
 * max.poll.records: Increase max.poll.records to allow the consumer to fetch larger batches of messages per poll. This reduces the overhead of frequent polling. 
