@@ -630,10 +630,9 @@ public class MessageConsumer {
 
 
 
----
-title: "Kafka Partitions, Consumers, and Consumer Groups: Best Practices and Scenarios"
-date: "2025-06-16"
----
+
+
+
 
 # Kafka Partitions, Consumers, and Consumer Groups: Best Practices and Scenarios
 
