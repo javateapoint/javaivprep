@@ -63,12 +63,12 @@ public class InventoryService {
 }
 ```
 ✅ Pros: 
-• Zero DB blocking 
-• Scales for thousands of SKUs
+- Zero DB blocking
+- Scales for thousands of SKUs
 
 ⚠️ Cons: 
-• Needs retry logic 
-• Occasional rolled-back transactions
+- Needs retry logic
+- Occasional rolled-back transactions
 
 
 
