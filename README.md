@@ -42,4 +42,4 @@
 - Group Employees with Dept
 - Find Average Salary of Each Department
 
--Finds the pivot element in the array where the sum of elements to the left equals the sum of elements to the right. If no such pivot exists, returns 0.
+- Finds the pivot element in the array where the sum of elements to the left equals the sum of elements to the right. If no such pivot exists, returns 0.
