@@ -1,81 +1,67 @@
-## Spring Boot 3 Application Startup & Auto‑Configuration Flow
 
-Below is a concise, step‑by‑step **visual summary** of what happens under the hood when you start a Spring Boot 3 application. 
-It covers both the classic lifecycle and new Spring Boot 3 AOT/bootstrap phases.
+## Spring Boot Application Startup & Auto‑Configuration (Simplified)
 
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│                         JVM Process Launch                          │
-└────────────────────────────────────────────────────────────────────────┘
-             ↓
-┌────────────────────────────────────────────────────────────────────────┐
-│                          Bootstrap Phase                            │
-│  • `SpringApplication.run(...)`                                       │
-│  • Create `BootstrapContext` & `Environment`                          │
-│  • Invoke `EnvironmentPostProcessor`s (e.g. property sources)         │
-│  • Notify `ApplicationListeners` (application starting event)         │
-└────────────────────────────────────────────────────────────────────────┘
-             ↓
-┌────────────────────────────────────────────────────────────────────────┐
-│                         Context Preparation                          │
-│  • Create `SpringApplication` instance                                │
-│  • Apply `ApplicationContextInitializers`                             │
-│  • Build `ApplicationContext` (e.g. `AnnotationConfigApplicationContext`)  
-│  • Register `ApplicationEnvironmentPreparedEvent`                    │
-└────────────────────────────────────────────────────────────────────────┘
-             ↓
-┌────────────────────────────────────────────────────────────────────────┐
-│                  Bean Definition Loading & Scanning                  │
-│  • `@ComponentScan` → scan classpath for `@Component`‑stereotypes    │
-│  • Register plain bean definitions                                   │
-│  • Load user `@Configuration` classes                                 │
-└────────────────────────────────────────────────────────────────────────┘
-             ↓
-┌────────────────────────────────────────────────────────────────────────┐
-│                    Auto‑Configuration Import                       │
-│  • `@EnableAutoConfiguration` (via `@SpringBootApplication`)         │
-│    └─▶ `SpringFactoriesLoader` reads `META‑INF/spring.factories`    │
-│    └─▶ `AutoConfigurationImportSelector`                              │
-│         • Filters candidates with `@ConditionalOn*` annotations      │
-│         • Honors `spring.autoconfigure.exclude` & `@EnableAutoConfig(exclude=…)`  
-│  • Register filtered auto‑config classes as bean definitions         │
-└────────────────────────────────────────────────────────────────────────┘
-             ↓
-┌────────────────────────────────────────────────────────────────────────┐
-│                       BeanFactory Post‑Processing                    │
-│  • Invoke all `BeanFactoryPostProcessor`s                             │
-│    (e.g. `PropertySourcesPlaceholderConfigurer`, AOT optimizers)      │
-└────────────────────────────────────────────────────────────────────────┘
-             ↓
-┌────────────────────────────────────────────────────────────────────────┐
-│                        ApplicationContext Refresh                    │
-│  • **Instantiation**: create bean instances (singletons eager)       │
-│  • **Populate Properties**: DI via `@Autowired`, constructor, setters│
-│  • **Aware Callbacks**: `BeanNameAware`, `ApplicationContextAware`, etc.  
-│  • **postProcessBeforeInit**: `BeanPostProcessor`                     │
-│  • **Init Callbacks**: `@PostConstruct`, `InitializingBean`, `initMethod`  
-│  • **postProcessAfterInit**: AOP proxying, metrics, tracing            │
-└────────────────────────────────────────────────────────────────────────┘
-             ↓
-┌────────────────────────────────────────────────────────────────────────┐
-│                    Smart Lifecycle & AOT Hooks                       │
-│  • `SmartInitializingSingleton.afterSingletonsInstantiated()`        │
-│  • `SmartLifecycle` beans start in phase order                       │
-│  • Spring Boot 3 AOT: native image runtime optimizations applied      │
-└────────────────────────────────────────────────────────────────────────┘
-             ↓
-┌────────────────────────────────────────────────────────────────────────┐
-│                          Application Ready                           │
-│  • `ApplicationStartedEvent`                                          │
-│  • `ApplicationReadyEvent`                                            │
-│  • Your `CommandLineRunner` and `ApplicationRunner` beans execute     │
-└────────────────────────────────────────────────────────────────────────┘
-             ↓
-┌────────────────────────────────────────────────────────────────────────┐
-│                         Graceful Shutdown                            │
-│  • On JVM exit or `context.close()`                                    │
-│  • `@PreDestroy` / `DisposableBean.destroy()`                         │
-│  • `stop()` on `SmartLifecycle` beans                                 │
-│  • `ApplicationFailedEvent` / `ApplicationStoppedEvent`               │
-└────────────────────────────────────────────────────────────────────────┘
+1. JVM Launch
+   └─ SpringApplication.run(...)
+
+2. Bootstrap Phase
+   ├─ Build Environment & Property Sources
+   └─ Fire ApplicationStartingEvent
+
+3. Bean Definition Loading
+   ├─ Scan for @Component, @Service, @Repository, @Controller
+   └─ Parse @Configuration classes
+
+4. Auto‑Configuration
+   ├─ Read META‑INF/spring.factories
+   ├─ Select candidates via AutoConfigurationImportSelector
+   ├─ Apply @ConditionalOn* filters:
+   │    • @ConditionalOnClass: active if a class is on the classpath (e.g., HikariCP present ⇒ DataSource auto‑config)
+   │    • @ConditionalOnMissingBean: active when no existing bean of that type is defined (override defaults)
+   │    • @ConditionalOnProperty: active based on config property (e.g., spring.security.enabled=true ⇒ security auto‑config)
+   │    • @ConditionalOnBean: active when another bean exists (e.g., MeterRegistry ⇒ metrics auto‑config)
+   │    • @ConditionalOnResource: active if a resource is available (e.g., web.xml ⇒ servlet support)
+   │    • @ConditionalOnExpression: active based on SpEL expression (e.g., custom condition)
+   └─ Register matching @Configuration beans
+
+5. BeanFactory Post‑Processing
+   └─ Run all BeanFactoryPostProcessor (property placeholders, etc.)
+
+6. Bean Instantiation & Injection
+   ├─ Instantiate beans (eager singletons)
+   ├─ Inject dependencies (@Autowired, constructor, @Value)
+   ├─ Call Aware callbacks (BeanNameAware, ApplicationContextAware…)
+   └─ Execute BeanPostProcessor before-init
+
+7. Initialization & Proxies
+   ├─ Run @PostConstruct & afterPropertiesSet()
+   ├─ Call custom init-method
+   └─ Execute BeanPostProcessor after-init (AOP proxies, metrics)
+
+8. Application Ready
+   ├─ Fire ApplicationReadyEvent
+   └─ Run CommandLineRunner / ApplicationRunner
+
+9. Shutdown (on close or JVM exit)
+   ├─ Fire ContextClosedEvent
+   ├─ Call @PreDestroy & DisposableBean.destroy()
+   └─ Stop SmartLifecycle beans
+````
+
+**Tips for Interviews:**
+
+* **Key Annotations:** `@SpringBootApplication` = `@Configuration` + `@EnableAutoConfiguration` + `@ComponentScan`.
+* **Conditional Annotations:** Know the main ones and when to use:
+
+  * `@ConditionalOnClass` (classpath checks)
+  * `@ConditionalOnMissingBean` (override custom beans)
+  * `@ConditionalOnProperty` (feature toggles)
+  * `@ConditionalOnBean` (dependent features)
+  * `@ConditionalOnResource` (resource-driven config)
+  * `@ConditionalOnExpression` (complex conditions)
+* **Lifecycle Hooks:** BeanFactoryPostProcessor → BeanPostProcessor → init/destroy callbacks → lifecycle interfaces.
+* **Override & Disable:** Use `spring.autoconfigure.exclude` or `@EnableAutoConfiguration(exclude = …)`.
+
 ```
+
