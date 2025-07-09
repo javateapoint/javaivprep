@@ -1,0 +1,38 @@
+Difference between @Component, @Service, and @Repository.
+
+Difference between HashMap and ConcurrentHashMap.
+
+
+Design bank system
+- having many client/account
+- account having min balance condition
+- many user accessing account via many ways- mobile / web 
+
+
+- find out department wise avg salary of employees from
+employee and department table.
+
+Questions based on Resume whatever I mentioned in my resume
+ex- 
+
+Improved application performance by 60% by successfully migrated monolithic 
+modules into microservices. - how you come up with 60% 
+and explain whats step u have taken for this. 
+
+- questions on Kafka
+- what is group consumers 
+- if on consumer left from consumer group 
+then what will happened to the message that consumemer is reading 
+
+Stream API questions -
+
+count the occurrences of words 
+{"paper" , "pen", "paper", "pen" , "pen" } 
+
+
+count each character occurrences from string = " I love india" 
+
+
+POST, PUT, PATCH - difference 
+
+How autoconfiguration works? 
