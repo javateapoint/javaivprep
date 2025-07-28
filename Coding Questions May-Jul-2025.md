@@ -162,3 +162,38 @@ public class PlayTwo {
 }
 
 ```
+
+# 5. Reverse a string without using any inbuilt func or libraries
+
+```java
+
+public class StringSentenceReverse {
+
+    public static void main(String[] args) {
+
+//        Reverse a string without using any inbuilt func or libraries
+//        i/p "Eat sleep code repeat"
+//        o/p  "repeat code sleep Eat"
+
+
+        String input = "Eat sleep code repeat";
+
+        String[] data = input.split(" ");
+
+        for(int i = 0; i < data.length/2; i++) {
+            String temp = data[i];
+            data[i] = data[data.length - 1 - i];
+            data[data.length - 1 - i] = temp;
+        }
+
+
+        for (String s : data) {
+            System.out.print(s + " ");
+        }
+
+
+    }
+}
+
+
+```
