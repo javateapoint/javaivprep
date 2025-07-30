@@ -35,6 +35,8 @@
 - How would you design least recently used cache [LRU], initial  capacity should be configurable and if capacity exceeds LRU element should be removed
 
 - Find first non repeating Character in String
+  
+- Finds the pivot element in the array where the sum of elements to the left equals the sum of elements to the right. If no such pivot exists, returns 0.
 
 ## Questions on Java Stream Api if Employee Class is Given:
 - Find max sal of employee
@@ -42,4 +44,4 @@
 - Group Employees with Dept
 - Find Average Salary of Each Department
 
-- Finds the pivot element in the array where the sum of elements to the left equals the sum of elements to the right. If no such pivot exists, returns 0.
+  
