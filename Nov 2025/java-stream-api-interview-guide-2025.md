@@ -2096,17 +2096,137 @@ List<Product> topProducts = products.stream()
 ## Mock Interview Questions
 
 **Q1**: Explain map() vs flatMap() with real example  
-**Q2**: When should you use parallel streams?  
-**Q3**: What is lazy evaluation? Demonstrate with code.  
-**Q4**: How do you handle null in streams?  
-**Q5**: Explain reduce() with identity and without  
-**Q6**: How would you debug a complex stream pipeline?  
-**Q7**: What are stateless and stateful operations?  
-**Q8**: How do you prevent ConcurrentModificationException?  
-**Q9**: Compare groupingBy() and partitioningBy()  
-**Q10**: Performance: distinct().sorted() vs sorted().distinct()
+**Answer**  
+`map()` is for one-to-one transformation; `flatMap()` is for flattening one-to-many/nested structures.
 
----
+```java
+
+List<String> sentences = Arrays.asList("Java Stream", "map vs flatMap");
+// map(): List<Stream<String>>
+List<List<String>> mapped = sentences.stream()
+.map(s -> Arrays.asList(s.split(" ")))
+.collect(Collectors.toList()); // [[Java, Stream], [map, vs, flatMap]]
+// flatMap(): List<String> (flattened)
+List<String> flatMapped = sentences.stream()
+.flatMap(s -> Arrays.stream(s.split(" ")))
+.collect(Collectors.toList()); // [Java, Stream, map, vs, flatMap]
+
+```
+
+**Q2**: When should you use parallel streams?  
+**Answer**  
+Use parallel streams for large, CPU-bound collections. Avoid for small or I/O-bound data and thread-unsafe operations.
+- Ideal: Large datasets, stateless operations, thread-safe collection.
+- Not ideal: I/O, mutable state, small arrays.
+
+```java
+
+List<Integer> list = IntStream.rangeClosed(1, 1000000).boxed().collect(Collectors.toList());
+long sum = list.parallelStream().mapToLong(i -> i * i).sum();
+
+```
+
+
+## Q3: What is lazy evaluation? Demonstrate with code.
+
+**Answer**  
+Intermediate operations are lazy; nothing executes until a terminal operation runs.
+
+```java
+List<Integer> list = Arrays.asList(1,2,3);
+Stream<Integer> stream = list.stream()
+.filter(n -> { System.out.println("Filter: " + n); return n > 1; });
+// No output
+stream.forEach(System.out::println);
+// Output appears now
+
+```
+
+**Q4**: How do you handle null in streams?  
+**Answer**  
+Always filter out nulls, or use defaults.
+
+```java
+List<String> list = Arrays.asList("A", null, "B");
+List<String> safe = list.stream()
+.filter(Objects::nonNull)
+.map(String::toLowerCase)
+.collect(Collectors.toList());
+```
+OR
+```java
+list.stream().map(s -> s == null ? "UNKNOWN" : s.toLowerCase())
+.collect(Collectors.toList());
+```
+
+
+
+**Q5**: Explain reduce() with identity and without  
+**Answer**  
+- With identity: returns identity if stream is empty (type T).
+- Without identity: returns Optional<T>, or empty for no values.
+
+```java
+int sum = list.stream().reduce(0, Integer::sum); // always returns int
+Optional<Integer> sumOpt = list.stream().reduce(Integer::sum); // Optional, maybe empty
+```
+
+**Q6**: How would you debug a complex stream pipeline?  
+**Answer**  
+Use `peek()` to log intermediate steps.
+
+```java
+list.stream()
+.peek(n -> System.out.println("original: " + n))
+.filter(n -> n > 5)
+.peek(n -> System.out.println("filtered: " + n))
+.map(n -> n * n)
+.peek(n -> System.out.println("mapped: " + n))
+.collect(Collectors.toList());
+```
+
+
+**Q7**: What are stateless and stateful operations?  
+**Answer**  
+- Stateless: each element processed independently (`filter`, `map`).
+- Stateful: needs to consider others (`sorted`, `distinct`).
+
+```java
+stream.filter(x -> x > 0); // stateless
+stream.sorted(); // stateful
+```
+
+**Q8**: How do you prevent ConcurrentModificationException?  
+**Answer**  
+Never modify the stream source during processing.
+
+```java
+List<Integer> list = Arrays.asList(1,2,3);
+// BAD: list.stream().forEach(n -> list.add(n * 2)); // error!
+List<Integer> newList = list.stream().map(n -> n * 2).collect(Collectors.toList()); // safe
+
+```
+
+**Q9**: Compare groupingBy() and partitioningBy()  
+**Answer**  
+- `groupingBy()`: categorizes into Map<K, List<T>>.
+- `partitioningBy()`: splits into two groups (boolean predicate).
+
+```java
+Map<String, List<Employee>> byDept = employees.stream()
+.collect(Collectors.groupingBy(Employee::getDepartment));
+Map<Boolean, List<Employee>> partition = employees.stream()
+.collect(Collectors.partitioningBy(e -> e.getSalary() > 80000));
+```
+
+**Q10**: Performance: distinct().sorted() vs sorted().distinct()
+**Answer**  
+Order matters. Always `distinct()` before `sorted()` to avoid unnecessary sorting.
+
+```java
+stream.distinct().sorted(); // better for large unsorted data
+stream.sorted().distinct(); // sorts everything, then dedups
+```
 
 ## Conclusion
 
