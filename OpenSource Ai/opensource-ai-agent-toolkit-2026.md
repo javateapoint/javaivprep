@@ -30,13 +30,6 @@ The repositories below collectively cover all four, plus private model hosting a
 | **Enterprise document retrieval** | [RAGFlow](https://github.com/infiniflow/ragflow) | Deep-document-understanding RAG engine; handles multi-column PDFs, tables, and scanned pages with dual keyword+vector retrieval | Actively maintained, high-traffic repo — exact current count not independently confirmed here | Apache-2.0 |
 | **Unified interface** | [AnythingLLM](https://github.com/Mintplex-Labs/anything-llm) | Desktop/Docker app that ties document retrieval, private models, and agents into one ChatGPT-like workspace | **~63.7K** (confirmed) | MIT |
 
-### What changed from the original summary, and why
-
-- **Browser Use and Crawl4AI star counts were revised down.** The originally reported 106K and 75K don't match what's currently verifiable from the projects' own pages and recent write-ups (~79K and ~50K respectively as of mid-2026). This isn't necessarily wrong — star counts move fast and different sources snapshot at different times — but the gap was large enough to flag rather than repeat as fact.
-- **Firecrawl's license is AGPL-3.0, not MIT.** This matters operationally: AGPL has network-use copyleft implications that MIT doesn't. If you're embedding Firecrawl's self-hosted core into a proprietary product (rather than using their hosted API), get this confirmed by whoever owns license compliance at your org before shipping.
-- **The IBM/Langflow claim checks out.** IBM announced its intent to acquire DataStax — Langflow's parent company (via DataStax's earlier acquisition of Logspace, Langflow's original creator) — in February 2025. This is accurate as stated in the original summary.
-- **AutoGen's "merged into Microsoft Agent Framework" is accurate** as a current description of the project's trajectory, though AutoGen's own repository remains available and instructive for learning multi-agent conversation patterns even if it's no longer the primary path forward at Microsoft.
-- **LocalAI and RAGFlow star counts were not independently confirmed** in this pass — both are established, actively maintained projects, but pin down current numbers at the source before quoting them in anything external-facing.
 
 ## Suggested Stack Assembly
 
