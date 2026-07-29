@@ -35,8 +35,47 @@ index=orders_prod sourcetype=springboot_json ("ERROR" OR "Exception")
 - Time range: use the **picker**, not `earliest=`/`latest=` in SPL, unless scripting/scheduled search. When scripting:
   ```spl
   earliest=-4h latest=now
-  earliest=-1d@d latest=@d      " yesterday, day-aligned
+  earliest=-1d@d latest=@d      # yesterday, day-aligned
   ```
+
+---
+
+## 2A. `TERM()`, `CASE()`, `PREFIX()` — Search-Time Performance Levers
+
+These are the **highest-impact operators** most engineers never learn. They work at the `tsidx` (time-series index) level, narrowing results before Splunk even reads raw events.
+
+```spl
+# TERM() — treat the entire string as one indexed token (bypasses minor breakers like . - /)
+# Use for: IPs, file paths, UUIDs with dashes, dotted class names
+index=order_prod TERM(192.168.1.42)
+index=order_prod TERM(com.company.order.service.OrderService)
+index=order_prod TERM(6f2a1c9b-4e8d-4f3a-9b0c-1d2e3f4a5b6c)
+```
+
+**Why it matters**: searching `192.168.1.42` without `TERM()` forces Splunk to find events containing `192`, `168`, `1`, AND `42` (because `.` is a minor breaker), then post-filter — massively slower on large indexes.
+
+```spl
+# CASE() — force case-sensitive matching (Splunk searches are case-insensitive by default)
+index=order_prod CASE(ERROR)                        # won't match "error" or "Error"
+index=order_prod CASE(NullPointerException)          # precise exception class match
+```
+
+```spl
+# PREFIX() — match field=value pairs in the tsidx directly (fastest possible field filter)
+index=order_prod PREFIX(http_status=5)               # matches 500, 502, 503 etc.
+```
+
+```spl
+# makeresults — generate synthetic events to test SPL logic without touching production data
+| makeresults count=5
+| streamstats count as id
+| eval service=case(id=1,"gateway",id=2,"order-service",id=3,"payment-service",id=4,"inventory-service",id=5,"notification-service")
+| eval duration_ms=random()%3000
+| eval level=if(duration_ms>2000,"ERROR","INFO")
+| table _time, service, level, duration_ms
+```
+
+> **Pro tip**: Use `makeresults` to prototype complex `eval`/`stats`/`streamstats` logic before running it against a real index — saves quota and avoids slow iteration cycles.
 
 ---
 
@@ -67,6 +106,13 @@ index=orders_prod sourcetype=springboot_json ("ERROR" OR "Exception")
 | `map` | subsearch per result row (careful, expensive) | rarely needed, prefer `join`/`transaction` |
 | `spath` | parse JSON explicitly | `\| spath input=raw_message path=error.code` |
 | `mvexpand` | explode multivalue field | when one log line has array of items |
+| `fillnull` | replace null fields with a default | `\| fillnull value=0 error_count` |
+| `rename` | rename fields for readability | `\| rename duration_ms as "Response Time (ms)"` |
+| `bin` / `bucket` | bucket numeric/time values | `\| bin _time span=5m` |
+| `addtotals` | add row/column totals | `\| addtotals col=t label="Total"` |
+| `untable` | unpivot table into rows | `\| untable _time, metric_name, metric_value` |
+| `xyseries` | pivot rows into columns | `\| xyseries _time service count` |
+| `makeresults` | generate synthetic events | see §2A — test SPL logic without production data |
 
 ---
 
@@ -107,6 +153,22 @@ Typical JSON log line (Logback + logstash-encoder / ECS style):
 - `exception` / `stack_trace` / `error.class` / `error.message` — exception details (often present when using ECS logging or MDC-populated fields)
 - `MDC.*` fields — anything devs pushed into `MDC.put(...)`, e.g. `MDC.userId`, `MDC.orderId`, `MDC.correlationId`
 
+### Kubernetes-specific fields (when running on K8s with Fluentd/Fluent Bit/OTel Collector)
+- `kubernetes.namespace_name` — which K8s namespace (e.g. `prod`, `staging`, `payments-ns`)
+- `kubernetes.container_name` — container within the pod (useful for sidecar debugging)
+- `kubernetes.node_name` — which physical/virtual node the pod is scheduled on (for node-level failures)
+- `kubernetes.labels.app` / `kubernetes.labels.version` — deployment labels (canary detection)
+- `deployment` / `replicaset` — which deployment revision is running
+
+```spl
+# Quick K8s field discovery for a service
+index=order_prod
+| head 100
+| fieldsummary
+| search field="kubernetes.*"
+| table field, distinct_count, values
+```
+
 > Tip: run `index=orders_prod | fieldsummary | table field, distinct_count, values` on a small time window whenever hitting a new service — instantly tells you what fields exist and their cardinality.
 
 ---
@@ -114,20 +176,20 @@ Typical JSON log line (Logback + logstash-encoder / ECS style):
 ## 5. Extracting Data with `rex` (when fields aren't auto-extracted)
 
 ```spl
-" extract traceId from a plain-text (non-JSON) log line
+# extract traceId from a plain-text (non-JSON) log line
 index=orders_prod
 | rex field=_raw "traceId=(?<traceId>[a-f0-9]{32})"
 
-" extract duration from message like 'completed in 245ms'
+# extract duration from message like 'completed in 245ms'
 | rex field=message "completed in (?<duration_ms>\d+)ms"
 
-" extract exception class from stack trace
+# extract exception class from stack trace
 | rex field=_raw "Caused by: (?<root_cause>[\w\.]+Exception)"
 
-" extract key=value pairs generically (logfmt style)
+# extract key=value pairs generically (logfmt style)
 | rex field=_raw max_match=0 "(?<kv_key>\w+)=(?<kv_value>[^\s,]+)"
 
-" pull HTTP status + path out of an access-log style line
+# pull HTTP status + path out of an access-log style line
 | rex field=_raw "\"(?<http_method>\w+) (?<http_path>\S+) HTTP.*\" (?<http_status>\d{3})"
 ```
 
@@ -143,7 +205,7 @@ For JSON logs that aren't auto-kv'd (e.g. nested inside a string field):
 **Scenario**: Customer reports order #12345 failed. You have no traceId yet.
 
 ```spl
-" Step 1: find the traceId from any service touching this order
+# Step 1: find the traceId from any service touching this order
 index=order_prod OR index=payment_prod OR index=inventory_prod
 "12345"
 | table _time, index, service, traceId, message
@@ -151,14 +213,14 @@ index=order_prod OR index=payment_prod OR index=inventory_prod
 ```
 
 ```spl
-" Step 2: once you have traceId, pull the FULL cross-service timeline
+# Step 2: once you have traceId, pull the FULL cross-service timeline
 index=*_prod traceId="6f2a1c9b4e8d4f3a9b0c1d2e3f4a5b6c"
 | table _time, service, spanId, parentSpanId, logger_name, level, http_status, duration_ms, message
 | sort _time
 ```
 
 ```spl
-" Step 3: reconstruct span durations / gaps to find where time was lost
+# Step 3: reconstruct span durations / gaps to find where time was lost
 index=*_prod traceId="6f2a1c9b4e8d4f3a9b0c1d2e3f4a5b6c"
 | eval time_epoch=_time
 | sort time_epoch
@@ -168,7 +230,7 @@ index=*_prod traceId="6f2a1c9b4e8d4f3a9b0c1d2e3f4a5b6c"
 ```
 
 ```spl
-" Step 4: isolate just the ERROR/WARN in that trace
+# Step 4: isolate just the ERROR/WARN in that trace
 index=*_prod traceId="6f2a1c9b4e8d4f3a9b0c1d2e3f4a5b6c" (level=ERROR OR level=WARN)
 | table _time, service, logger_name, message, stack_trace
 ```
@@ -210,7 +272,7 @@ Prefer `stats` + common field, or a `lookup`, over `join` whenever you can — `
 This is the query an expert reaches for **first**, before even reading messages — it tells you the shape of the request's journey across your microservice mesh.
 
 ```spl
-" 1. Ordered list of every service/hop a traceId passed through
+# 1. Ordered list of every service/hop a traceId passed through
 index=*_prod traceId="<PASTE_TRACE_ID>"
 | sort _time
 | stats earliest(_time) as hop_start, latest(_time) as hop_end, count as log_lines by service, spanId, parentSpanId
@@ -220,7 +282,7 @@ index=*_prod traceId="<PASTE_TRACE_ID>"
 ```
 
 ```spl
-" 2. Collapse into a single "path string" — e.g. gateway -> order-service -> payment-service -> inventory-service
+# 2. Collapse into a single "path string" — e.g. gateway -> order-service -> payment-service -> inventory-service
 index=*_prod traceId="<PASTE_TRACE_ID>"
 | sort _time
 | stats values(service) as services_hit, dc(service) as service_count, earliest(_time) as trace_start, latest(_time) as trace_end by traceId
@@ -230,7 +292,7 @@ index=*_prod traceId="<PASTE_TRACE_ID>"
 ```
 
 ```spl
-" 3. Waterfall-style timeline (indent by parent/child depth) — good for spotting where time is actually spent
+# 3. Waterfall-style timeline (indent by parent/child depth) — good for spotting where time is actually spent
 index=*_prod traceId="<PASTE_TRACE_ID>"
 | sort _time
 | streamstats current=f last(_time) as prev_time
@@ -242,29 +304,29 @@ index=*_prod traceId="<PASTE_TRACE_ID>"
 ```
 
 ```spl
-" 4. Detect a BROKEN trace — expected service didn't receive/propagate the traceId (common with @Async, Kafka consumers, scheduled jobs)
+# 4. Detect a BROKEN trace — expected service didn't receive/propagate the traceId (common with @Async, Kafka consumers, scheduled jobs)
 index=*_prod traceId="<PASTE_TRACE_ID>"
 | stats dc(service) as services_seen, values(service) as service_list by traceId
 | eval expected_services="gateway,order-service,payment-service,inventory-service,notification-service"
 | eval expected_list=split(expected_services,",")
-| eval missing=mvfilter(NOT match(expected_list, "^(".mvjoin(service_list,"|").")$"))
+| eval missing=mvfilter(NOT match(expected_list, "^(" + mvjoin(service_list,"|") + ")$"))
 | table traceId, service_list, missing
 ```
 > Tune the `expected_services` list per business flow (checkout, refund, onboarding, etc.) — this turns "silent trace context loss" into an explicit, alertable signal instead of something you notice by accident.
 
 ```spl
-" 5. Span tree reconstruction using parent/child relationships (proper distributed-tracing tree, not just chronological order)
+# 5. Span tree reconstruction using parent/child relationships (proper distributed-tracing tree, not just chronological order)
 index=*_prod traceId="<PASTE_TRACE_ID>"
 | stats earliest(_time) as start, latest(_time) as end, values(service) as service, values(message) as sample_msg by spanId, parentSpanId
 | eval duration_ms=(end-start)*1000
 | sort start
 | table spanId, parentSpanId, service, duration_ms, sample_msg
-" then visualize as a tree in an external tool, or eyeball parent->child chains manually — Splunk has no native tree viz,
-" but the Trace Analytics / APM app (if licensed: Splunk APM / SignalFx / Observability Cloud) renders this natively.
+# Then visualize as a tree in an external tool, or eyeball parent->child chains manually — Splunk has no native tree viz,
+# but the Trace Analytics / APM app (if licensed: Splunk APM / SignalFx / Observability Cloud) renders this natively.
 ```
 
 ```spl
-" 6. Find the single slowest hop across all services for a trace — the actual bottleneck
+# 6. Find the single slowest hop across all services for a trace — the actual bottleneck
 index=*_prod traceId="<PASTE_TRACE_ID>"
 | stats earliest(_time) as start, latest(_time) as end by service, spanId
 | eval duration_ms=(end-start)*1000
@@ -274,14 +336,14 @@ index=*_prod traceId="<PASTE_TRACE_ID>"
 ```
 
 ```spl
-" 7. Aggregate view: for a GIVEN endpoint, what's the typical service fan-out / hop count across many traces (baseline for anomaly detection)
+# 7. Aggregate view: for a GIVEN endpoint, what's the typical service fan-out / hop count across many traces (baseline for anomaly detection)
 index=*_prod http_path="/api/v1/checkout" earliest=-1h
 | stats dc(service) as hop_count by traceId
 | stats avg(hop_count) as avg_hops, max(hop_count) as max_hops, min(hop_count) as min_hops, count as trace_samples
 ```
 
 ```spl
-" 8. Cross-environment / cross-region trace continuity check (if services span clusters or regions)
+# 8. Cross-environment / cross-region trace continuity check (if services span clusters or regions)
 index=*_prod traceId="<PASTE_TRACE_ID>"
 | stats values(region) as regions_hit, values(cluster) as clusters_hit, values(service) as services by traceId
 ```
@@ -296,28 +358,28 @@ index=*_prod traceId="<PASTE_TRACE_ID>"
 ## 8. Error Rate / Latency RCA Queries
 
 ```spl
-" Error rate over time by service, spot the exact spike
+# Error rate over time by service, spot the exact spike
 index=*_prod sourcetype=springboot_json
 | timechart span=1m count(eval(level="ERROR")) as errors, count as total
 | eval error_rate=round(errors/total*100,2)
 ```
 
 ```spl
-" Top exceptions in the last hour, ranked
+# Top exceptions in the last hour, ranked
 index=order_prod level=ERROR earliest=-1h
 | rex field=_raw "(?<exception_class>[\w\.]+Exception)"
 | top limit=20 exception_class
 ```
 
 ```spl
-" P50/P90/P99 latency by endpoint
+# P50/P90/P99 latency by endpoint
 index=order_prod http_path=*
 | stats p50(duration_ms) as p50, p90(duration_ms) as p90, p99(duration_ms) as p99, count by http_path
 | sort -p99
 ```
 
 ```spl
-" Latency degradation compare: this hour vs same hour yesterday
+# Latency degradation compare: this hour vs same hour yesterday
 index=order_prod earliest=-1h@h latest=now
 | stats avg(duration_ms) as avg_today
 | appendcols
@@ -327,37 +389,95 @@ index=order_prod earliest=-1h@h latest=now
 ```
 
 ```spl
-" Find which pod/instance is causing errors (bad deploy / one bad node)
+# Find which pod/instance is causing errors (bad deploy / one bad node)
 index=order_prod level=ERROR
 | stats count by pod
 | sort -count
 ```
 
 ```spl
-" 5xx errors correlated with a specific downstream dependency call
+# 5xx errors correlated with a specific downstream dependency call
 index=order_prod http_status>=500
 | rex field=message "calling (?<downstream_service>\w+-service)"
 | stats count by downstream_service, http_status
 ```
 
 ```spl
-" Detect thread pool exhaustion / connection pool starvation
+# Detect thread pool exhaustion / connection pool starvation
 index=order_prod ("RejectedExecutionException" OR "Timeout waiting for connection" OR "HikariPool" "Connection is not available")
 | stats count by thread_name, message
 ```
 
 ```spl
-" GC pauses / OOM correlation with latency spike (if GC logs indexed)
+# GC pauses / OOM correlation with latency spike (if GC logs indexed)
 index=order_prod ("OutOfMemoryError" OR "GC overhead limit exceeded" OR "Full GC")
 | table _time, pod, message
 ```
 
 ---
 
+## 8A. Resilience Pattern RCA — Circuit Breaker / Retry / Bulkhead (Resilience4j)
+
+Spring Boot microservices using **Resilience4j** emit specific log patterns when resilience mechanisms activate. These queries catch cascading failures *before* they become full outages.
+
+```spl
+# Circuit breaker state transitions (CLOSED → OPEN → HALF_OPEN → CLOSED)
+index=order_prod ("CircuitBreaker" AND ("state transition" OR "transitioned"))
+| rex field=message "CircuitBreaker '(?<cb_name>[^']+)' .* from (?<from_state>\w+) to (?<to_state>\w+)"
+| table _time, service, cb_name, from_state, to_state, message
+| sort _time
+```
+
+```spl
+# Circuit breaker OPEN events over time — spot which downstream is flapping
+index=*_prod "CircuitBreaker" "OPEN" earliest=-4h
+| rex field=message "CircuitBreaker '(?<cb_name>[^']+)'"
+| timechart span=5m count by cb_name
+```
+
+```spl
+# Retry exhaustion — retries ran out, request ultimately failed
+index=order_prod ("Retry" AND ("max retries" OR "attempts exhausted" OR "RetryExhaustedEvent"))
+| rex field=message "Retry '(?<retry_name>[^']+)'"
+| stats count by service, retry_name
+| sort -count
+```
+
+```spl
+# Bulkhead rejection — thread pool / semaphore full, requests being dropped
+index=order_prod ("BulkheadFullException" OR "Bulkhead" "is full")
+| rex field=message "Bulkhead '(?<bulkhead_name>[^']+)'"
+| timechart span=1m count by bulkhead_name
+```
+
+```spl
+# Rate limiter rejections
+index=order_prod ("RequestNotPermitted" OR "RateLimiter" "does not permit")
+| rex field=message "RateLimiter '(?<limiter_name>[^']+)'"
+| stats count by service, limiter_name
+| sort -count
+```
+
+```spl
+# Detect thundering herd from retries — retry storms amplifying downstream load
+index=order_prod earliest=-1h
+| rex field=message "Retry '(?<retry_name>[^']+)'"
+| bin _time span=1m
+| stats count as retry_count by _time, retry_name
+| where retry_count > 50
+| sort -retry_count
+```
+
+> **Key insight**: if circuit breakers keep flipping `OPEN → HALF_OPEN → OPEN` rapidly, it means the downstream is not recovering between probe intervals. Check the downstream service's health (memory, CPU, connection pool) rather than adjusting the breaker config — the breaker is doing its job correctly.
+
+> **Actuator correlation**: if your services expose `/actuator/circuitbreakers` and `/actuator/retryevents`, scrape those alongside logs for a richer picture. Micrometer + Resilience4j exports these as metrics (e.g. `resilience4j_circuitbreaker_state`) which can be indexed via `metrics` sourcetype in Splunk.
+
+---
+
 ## 9. Comparing Deploys / Canary Analysis
 
 ```spl
-" Error rate before vs after a deploy timestamp (replace with real deploy time)
+# Error rate before vs after a deploy timestamp (replace with real deploy time)
 index=order_prod
 | eval period=if(_time < strptime("2026-07-26 09:00:00","%Y-%m-%d %H:%M:%S"), "before", "after")
 | stats count(eval(level="ERROR")) as errors, count as total by period
@@ -365,7 +485,7 @@ index=order_prod
 ```
 
 ```spl
-" Compare two pod versions during canary rollout
+# Compare two pod versions during canary rollout
 index=order_prod pod=*
 | eval version=if(match(pod,"canary"),"canary","stable")
 | stats count(eval(level="ERROR")) as errors, count as total, avg(duration_ms) as avg_latency by version
@@ -392,31 +512,67 @@ index=order_prod pod=*
 | `split(field, ",")` + `mvexpand` | split delimited string into multivalue |
 | `tonumber(field)` | cast string→number for math |
 | `null()` | explicit null assignment |
+| `now()` | current epoch time (useful in `eval` comparisons) |
+| `relative_time(_time, "-1h")` | compute a timestamp relative to another |
+| `exact(expr)` | force floating-point precision in math |
+| `cidrmatch("10.0.0.0/8", ip)` | check if IP is in a CIDR subnet |
+| `urldecode(field)` | decode URL-encoded strings |
+| `replace(field, regex, replacement)` | regex-based string replacement |
+| `json_object(k1, v1, k2, v2)` | construct JSON object in eval (Splunk 9.x+) |
+| `json_array(v1, v2, v3)` | construct JSON array in eval (Splunk 9.x+) |
+| `mvjoin(field, delim)` | join multivalue field into single string |
+| `mvfilter(expr)` | filter multivalue field by expression |
 
 ---
 
 ## 11. Lookups & Enrichment
 
 ```spl
-" Enrich service name with owning team from a CSV lookup
+# Enrich service name with owning team from a CSV lookup
 index=*_prod level=ERROR
 | lookup service_owner_lookup.csv service OUTPUT team, oncall_slack_channel
 | stats count by service, team, oncall_slack_channel
 ```
 
 ```spl
-" KV store lookup for dynamic data (feature flags, config versions)
+# KV store lookup for dynamic data (feature flags, config versions)
 | lookup feature_flags_kv flag_name OUTPUT enabled
 ```
 
 Create/manage lookups: **Settings → Lookups → Lookup table files** (upload CSV) then **Lookup definitions** to name it.
+
+### `inputlookup` / `outputlookup` — Persistent State & Advanced Patterns
+
+```spl
+# inputlookup with WHERE — fast subsearch replacement (no 60s/50k limit)
+| inputlookup known_bad_ips.csv WHERE threat_level="critical"
+| rename ip as src_ip
+| join type=inner src_ip
+    [ search index=order_prod earliest=-1h | table src_ip, traceId, message ]
+```
+
+```spl
+# outputlookup — persist results for cross-search state (e.g. tracking known error counts)
+index=order_prod level=ERROR earliest=-1h
+| stats count by service, exception_class
+| outputlookup append=t error_trends.csv
+```
+
+```spl
+# collect — write aggregated results to a summary index for long-term trending
+index=order_prod
+| stats count as request_count, count(eval(level="ERROR")) as error_count by service, http_path
+| collect index=summary_prod sourcetype=service_hourly_stats output_format=hec
+```
+
+> **Safety tip**: always test `outputlookup` to a temporary file first (`outputlookup _temp_test.csv`), never directly to a production lookup until you've verified the output.
 
 ---
 
 ## 12. Alerting-Style Queries (for saved searches / alerts)
 
 ```spl
-" Alert: error rate > 5% in last 5 min, per service
+# Alert: error rate > 5% in last 5 min, per service
 index=*_prod sourcetype=springboot_json earliest=-5m
 | stats count(eval(level="ERROR")) as errors, count as total by service
 | eval error_rate=round(errors/total*100,2)
@@ -424,14 +580,14 @@ index=*_prod sourcetype=springboot_json earliest=-5m
 ```
 
 ```spl
-" Alert: p99 latency breach
+# Alert: p99 latency breach
 index=order_prod earliest=-5m
 | stats p99(duration_ms) as p99 by http_path
 | where p99 > 2000
 ```
 
 ```spl
-" Alert: specific exception spike vs baseline (rolling)
+# Alert: specific exception spike vs baseline (rolling)
 index=order_prod "OutOfMemoryError" earliest=-15m
 | stats count
 | where count > 5
@@ -469,14 +625,14 @@ Minimum panels every service dashboard should have:
 7. **Saturation indicators** (thread pool, connection pool, queue depth if logged)
 
 ```spl
-" Reusable base search (set as a "base" search, others post-process it)
+# Reusable base search (set as a "base" search, others post-process it)
 index=order_prod sourcetype=springboot_json
 ```
 
 Use **Splunk macros** for repeated snippets:
 ```
-" Settings > Advanced Search > Search Macros
-" Macro name: get_errors(1)
+# Settings > Advanced Search > Search Macros
+# Macro name: get_errors(1)
 index=$service$ level=ERROR
 ```
 Call with: `` `get_errors("order_prod")` ``
@@ -498,6 +654,11 @@ Call with: `` `get_errors("order_prod")` ``
 - **High-cardinality `by` clauses** (e.g. `by traceId`) in `stats`/`chart` over huge windows can blow up memory — bound the time range first.
 - **Async/thread-pool boundaries breaking MDC propagation** — if traceId vanishes mid-trace, it's usually a missing `TaskDecorator` or a Kafka listener not extracting trace headers, not a logging bug.
 - **Missing `spanId`/`parentSpanId` correlation** — you often need to reconstruct order using `_time` + `logger_name` sequence rather than trusting parent/child fields if the tracing library version is inconsistent across services.
+- **`dedup` is secretly expensive** — it sorts data first, then deduplicates. If you only need the latest event per key, `| stats latest(_raw) as _raw, latest(_time) as _time by traceId` is faster on large datasets.
+- **`NOT field=value` vs `field!=value`** — these are NOT the same. `field!=value` only matches events where the field *exists* with a different value. `NOT field=value` also matches events where the field is *absent entirely*. This is the #1 silent logic bug in Splunk queries.
+- **`fillnull` for dashboard consistency** — missing fields render as blank cells in dashboard panels, confusing stakeholders. Add `| fillnull value=0 error_count` or `| fillnull value="N/A" team` to any dashboard-bound search.
+- **`index=*` doesn't search internal indexes** — if you need `_internal`, `_audit`, or `_introspection`, you must add `OR index=_*` explicitly. This trips people up when debugging Splunk's own behavior.
+- **`head` / `tail` without `sort` are nondeterministic** — Splunk doesn't guarantee event order unless you explicitly `| sort _time` first. A bare `| head 10` may return different results on each run.
 
 ---
 
