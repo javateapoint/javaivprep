@@ -1,257 +1,226 @@
-##Q1. What is JVM? Why is Java called platform-independent?
-JVM (Java Virtual Machine): It is the runtime engine that executes Java bytecode. JVM is responsible for converting bytecode into machine-specific code.
+# Top Core Java Interview Questions & Answers
 
-Platform Independence:
+Comprehensive core Java interview questions and answers covering JVM architecture, OOP concepts, data types, classloaders, and method behavior.
 
-Java source code (.java) is compiled into bytecode (.class).
+---
 
-This bytecode can run on any machine that has a compatible JVM.
+## Q1. What is JVM? Why is Java called platform-independent?
 
-Hence, Java is "Write Once, Run Anywhere" (WORA).
+**JVM (Java Virtual Machine)**: It is the abstract computing machine/runtime engine that executes Java bytecode (.class files). JVM converts bytecode into native machine instructions specific to the underlying operating system.
 
- 
-// Sample
+**Platform Independence**:
+1. Java source code (`.java`) is compiled by `javac` into intermediate bytecode (`.class`).
+2. Bytecode is CPU-independent and platform-neutral.
+3. Any operating system with a platform-specific JVM can run the same bytecode.
+4. Hence, Java achieves **"Write Once, Run Anywhere" (WORA)**.
+
+```java
 public class Hello {
     public static void main(String[] args) {
         System.out.println("Hello, Java!");
     }
 }
-##Q2. What is the difference between JDK, JRE, and JVM?
-Component	Description
-JDK (Java Development Kit)	Includes JRE + development tools (javac, javadoc).
-JRE (Java Runtime Environment)	Contains JVM + core libraries. It’s needed to run Java apps.
-JVM	Executes the bytecode line by line.
+```
 
-##Q3. What are the features of Java?
-Object-Oriented
+---
 
-Platform Independent
+## Q2. What is the difference between JDK, JRE, and JVM?
 
-Robust and Secure
+| Component | Description | Included Tools |
+| :--- | :--- | :--- |
+| **JDK (Java Development Kit)** | Complete software development environment required to develop and execute Java applications. | JRE + Development tools (`javac`, `jar`, `javadoc`, `jcmd`). |
+| **JRE (Java Runtime Environment)** | Runtime environment containing core libraries and JVM to execute Java applications. | JVM + Core runtime libraries (`rt.jar` / Modules). |
+| **JVM (Java Virtual Machine)** | Runtime engine that executes compiled bytecode line-by-line or via JIT compilation. | JIT Compiler, Garbage Collector, Memory Manager. |
 
-Multithreaded
+---
 
-Distributed
+## Q3. What are the key features of Java?
 
-Architecture-neutral
+- **Object-Oriented**: Everything in Java (except primitives) is centered around objects and classes.
+- **Platform Independent**: Compiled into platform-agnostic bytecode.
+- **Robust and Secure**: Automatic memory management (GC), strong type checking, explicit exception handling, and no raw pointers.
+- **Multithreaded**: Built-in support for concurrent execution via threads and Virtual Threads (Java 21).
+- **Distributed**: Supports network programming, RMI/REST/gRPC protocols.
+- **Dynamic and Extensible**: Loads classes on demand at runtime and supports reflection.
 
-Dynamic and Extensible
+---
 
-##Q4. What is the difference between path and classpath variables?
-Path: Tells OS where to find executables (e.g., javac, java).
+## Q4. What is the difference between PATH and CLASSPATH environment variables?
 
-Classpath: Tells JVM where to find .class files and external libraries.
+- **PATH**: Tells the Operating System where to locate executable binary commands (e.g., `java`, `javac`, `mvn`).
+- **CLASSPATH**: Tells the JVM and Java compiler where to find user-defined `.class` files, packages, and third-party JAR dependencies.
 
- 
-# Example
-export PATH=/usr/bin/java
-export CLASSPATH=.:/home/user/myapp/classes
-##Q5. What are primitive data types in Java?
-Java has 8 primitives:
+```bash
+# Example Setup
+export PATH=/usr/lib/jvm/java-21-openjdk/bin:$PATH
+export CLASSPATH=.:/home/user/app/lib/*
+```
 
-byte, short, int, long (integer types)
+---
 
-float, double (floating-point)
+## Q5. What are primitive data types in Java?
 
-char (character)
+Java has 8 primitive data types categorized as:
 
-boolean (true/false)
+| Type | Size | Default Value | Range / Value |
+| :--- | :--- | :--- | :--- |
+| `byte` | 1 byte (8 bits) | `0` | -128 to 127 |
+| `short` | 2 bytes (16 bits) | `0` | -32,768 to 32,767 |
+| `int` | 4 bytes (32 bits) | `0` | -2^31 to 2^31-1 |
+| `long` | 8 bytes (64 bits) | `0L` | -2^63 to 2^63-1 |
+| `float` | 4 bytes (32 bits) | `0.0f` | IEEE 754 floating-point |
+| `double` | 8 bytes (64 bits) | `0.0d` | IEEE 754 floating-point |
+| `char` | 2 bytes (16 bits) | `'\u0000'` | Unicode character (0 to 65,535) |
+| `boolean` | ~1 bit / 1 byte | `false` | `true` or `false` |
 
- 
-int a = 10;
-double pi = 3.14;
-boolean flag = true;
-##Q6. What is the default value of a primitive type?
-Type	Default Value
-int	0
-boolean	false
-double	0.0
-object reference	null
+---
 
-##Q7. What are wrapper classes?
-They "wrap" primitive types into objects. For example:
+## Q6. What are Wrapper Classes?
 
-int → Integer
+Wrapper classes box primitive data types into object representations.
 
-boolean → Boolean
+- `byte` → `Byte`
+- `short` → `Short`
+- `int` → `Integer`
+- `long` → `Long`
+- `float` → `Float`
+- `double` → `Double`
+- `char` → `Character`
+- `boolean` → `Boolean`
 
-Useful in Collections (like List<Integer>) which work with objects.
+They enable primitives to be used in Java Collections (`List<Integer>`), generics, and stream operations.
 
- 
-int x = 10;
-Integer y = Integer.valueOf(x);
-##Q8. What is autoboxing and unboxing?
-Autoboxing: Primitive → Wrapper
+---
 
-Unboxing: Wrapper → Primitive
+## Q7. What is Autoboxing and Unboxing?
 
- 
-Integer i = 10; // autoboxing
-int j = i;      // unboxing
-##Q9. What is a constructor?
-A constructor is used to initialize objects. It has the same name as the class and no return type.
+- **Autoboxing**: Automatic conversion of a primitive type into its corresponding wrapper class object (`int` to `Integer`).
+- **Unboxing**: Automatic conversion of a wrapper class object into its primitive type (`Integer` to `int`).
 
- 
+```java
+Integer wrapper = 10; // Autoboxing (Integer.valueOf(10))
+int primitive = wrapper; // Unboxing (wrapper.intValue())
+```
+
+---
+
+## Q8. What is a Constructor?
+
+A constructor is a special block of code used to initialize newly created objects. It has the exact same name as its class and has no explicit return type.
+
+```java
 class Person {
-    Person() {
-        System.out.println("Constructor called");
-    }
-}
-##Q10. What is constructor overloading?
-Multiple constructors with different parameter lists.
-
- 
-class Person {
-    Person() {}
-    Person(String name) {}
-    Person(String name, int age) {}
-}
-##Q11. What is the purpose of the static block?
-It’s used to initialize static variables. Runs once when the class is loaded.
-
- 
-class Example {
-    static {
-        System.out.println("Static block called");
-    }
-}
-##Q12. Can we execute a program without the main method?
-From Java 7 onwards, it’s not possible for standalone applications. JVM looks for the main() method.
-
-##Q13. What is the difference between static and non-static methods?
-Static: Belongs to the class; can be called without object.
-
-Non-static: Belongs to object instance.
-
- 
-static void show() {}
-void print() {}
-##Q14. What is method overloading?
-Same method name, different parameters. Resolved at compile-time.
-
- 
-int sum(int a, int b) {}
-double sum(double a, double b) {}
-##Q15. What is method overriding?
-Subclass provides specific implementation for a method in its superclass.
-
- 
-class A {
-    void show() {}
-}
-class B extends A {
-    @Override
-    void show() {}
-}
-##Q16. What is the use of final keyword in Java?
-Variable: Value can’t change.
-
-Method: Can’t be overridden.
-
-Class: Can’t be extended.
-
-##Q17. What is the difference between this and super?
-this: Refers to current object.
-
-super: Refers to parent class object/method.
-
- 
-super.show();
-this.name = name;
-##Q18. Can a constructor be private?
-Yes. Used in Singleton patterns or factory classes.
-
- 
-class Singleton {
-    private Singleton() {}
-}
-##Q19. What is the use of instanceof keyword?
-Checks if an object is an instance of a class or subclass.
-
- 
-if (obj instanceof String) {}
-##Q20. What is the difference between break and continue?
-break: exits the loop.
-
-continue: skips current iteration.
-
-##Q21. What is the difference between == and e##Quals()?
-==: compares references.
-
-e##Quals(): compares values (can be overridden).
-
- 
-String a = "hello";
-String b = new String("hello");
-System.out.println(a == b);         // false
-System.out.println(a.e##Quals(b));    // true
-##Q22. What is a package in Java?
-A namespace to group related classes.
-
- 
-package com.example.utils;
-##Q23. What is the access scope of protected access modifier?
-Accessible:
-
-Within same package.
-
-In subclass (even if in different package).
-
-##Q24. What is the final class?
-Cannot be extended.
-
- 
-final class Constants {}
-
-##Q25. What is the difference between interface and abstract class?
-Feature	Interface	Abstract Class
-Methods	All abstract (until Java 7)	Can have both
-Fields	Public static final	Any access modifier
-Multiple Inheritance	Yes	No
-
-##Q26. What are naming conventions in Java?
-Class: CamelCase (e.g., CustomerAccount)
-
-Variable/Method: camelCase (e.g., calculateTotal)
-
-Constant: UPPER_SNAKE_CASE (e.g., MAX_USERS)
-
-##Q27. Why should we follow naming conventions?
-Improves readability, maintenance, and aligns with community standards.
-
-##Q28. What is a JavaBean?
-A reusable component that follows conventions:
-
-Public no-arg constructor
-
-Getters and setters
-
-Serializable
-
- 
-public class Student implements Serializable {
     private String name;
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+
+    // No-arg constructor
+    public Person() {
+        this.name = "Unknown";
+    }
+
+    // Parameterized constructor
+    public Person(String name) {
+        this.name = name;
+    }
 }
-##Q29. What is the importance of the toString() method?
-Returns string representation of an object.
+```
 
- 
-@Override
-public String toString() {
-    return "Student[name=" + name + "]";
+---
+
+## Q9. What is Constructor Overloading?
+
+Defining multiple constructors within the same class, each having a different parameter list (number, type, or order of parameters).
+
+```java
+class Person {
+    private String name;
+    private int age;
+
+    public Person() {}
+    public Person(String name) { this.name = name; }
+    public Person(String name, int age) { this.name = name; this.age = age; }
 }
-##Q30. What is the purpose of e##Quals() and hashCode()?
-Used in Collections like HashMap, HashSet.
+```
 
-e##Quals(): checks logical e##Quality.
+---
 
-hashCode(): provides hash value.
+## Q10. What is a static block in Java?
 
- 
-@Override
-public boolean equals(Object o) { ... }
+A `static` block is executed **once** when the JVM loads the class into memory, prior to object instantiation or main method execution. It is primarily used for static member initialization.
 
-@Override
-public int hashCode() { ... }
+```java
+class Config {
+    static String dbUrl;
+    
+    static {
+        dbUrl = System.getenv().getOrDefault("DB_URL", "jdbc:postgresql://localhost:5432/db");
+        System.out.println("Static block executed: Config initialized.");
+    }
+}
+```
+
+---
+
+## Q11. Can we execute a Java program without a `main` method?
+
+Prior to Java 7, a static initializer block could execute code before the missing `main` error was raised. From Java 7 onwards, the JVM explicitly checks for `public static void main(String[] args)` before initializing the class, so standalone programs require a main entry point (or modern Java 21 instance main methods).
+
+---
+
+## Q12. Difference between static and non-static methods?
+
+- **Static Methods**: Associated with the class itself. Can be invoked using `ClassName.methodName()` without instantiating an object. Cannot directly access instance variables or `this`/`super`.
+- **Non-Static Methods**: Associated with a specific object instance. Can access both static and instance fields.
+
+---
+
+## Q13. Difference between Method Overloading and Method Overriding?
+
+| Aspect | Method Overloading | Method Overriding |
+| :--- | :--- | :--- |
+| **Scope** | Same class. | Subclass inheriting parent class. |
+| **Parameters** | Must be different (count, types, or order). | Must be identical. |
+| **Return Type** | Can be different. | Must be same or covariant subclass type. |
+| **Binding Time** | Compile-time (Static polymorphism). | Runtime (Dynamic polymorphism). |
+
+---
+
+## Q14. What is the `final` keyword used for in Java?
+
+- **Final Variable**: Creates a constant whose value cannot be reassigned once initialized.
+- **Final Method**: Prevents subclasses from overriding the method.
+- **Final Class**: Prevents other classes from extending/inheriting the class.
+
+---
+
+## Q15. Difference between `==` and `equals()`?
+
+- **`==` Operator**: Compares reference memory addresses for object types (checks if both references point to identical memory location). For primitives, it compares primitive values.
+- **`equals()` Method**: Compares logical values/content equality of objects. Must be overridden in custom classes alongside `hashCode()`.
+
+```java
+String s1 = "hello";
+String s2 = new String("hello");
+
+System.out.println(s1 == s2);       // false (different objects in heap)
+System.out.println(s1.equals(s2));  // true (same string content)
+```
+
+---
+
+## Q16. Purpose of `equals()` and `hashCode()` contract?
+
+When using objects in hash-based collections (`HashMap`, `HashSet`, `ConcurrentHashMap`):
+1. If `a.equals(b)` is `true`, then `a.hashCode()` **MUST** equal `b.hashCode()`.
+2. If two objects have identical hash codes, they are **NOT required** to be equal (hash collision).
+3. Overriding `equals()` without overriding `hashCode()` breaks `HashMap` retrieval logic.
+
+---
+
+## Q17. Difference between Abstract Class and Interface (Java 8+ to 21)
+
+| Feature | Interface | Abstract Class |
+| :--- | :--- | :--- |
+| **Inheritance** | A class can implement multiple interfaces. | A class can extend only one abstract class. |
+| **Fields** | Only `public static final` constants. | Can have instance fields with any access modifier. |
+| **Methods** | Abstract, `default`, `static`, and `private` methods. | Abstract methods, concrete methods, static methods. |
+| **Constructor** | Cannot have constructors. | Can have constructors called during subclass instantiation. |
