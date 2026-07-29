@@ -15,6 +15,8 @@ A dedicated, production-grade master suite engineered specifically for Senior, L
 - 🛡️ [05. Resilience4j, Distributed Tracing & Observability Guide](Senior-Java-7Plus-Guide/05-Resilience4j-Distributed-Tracing-Observability.md) — Circuit Breaker states (`CLOSED`, `OPEN`, `HALF_OPEN`), Rate Limiter, Bulkheads, Exponential Backoff + Jitter, W3C `traceparent` headers, Micrometer Tracing, and `MDC` context propagation.
 - 🔒 [06. OAuth2, Spring Security 6.x & DevSecOps Guide](Senior-Java-7Plus-Guide/06-OAuth2-Spring-Security6-DevSecOps.md) — PKCE Authorization Code flow, JWKS validation, stateless `SecurityFilterChain`, custom `OncePerRequestFilter`, and OWASP API Top 10 (BOLA/IDOR, BFLA, SQLi).
 - 🏗️ [07. Senior System Design Production Blueprints Guide](Senior-Java-7Plus-Guide/07-System-Design-Production-Blueprints-7Plus.md) — High-throughput Idempotent Payment Gateway and Multi-Channel Notification Engine architectures with diagrams, DB schemas, and trade-off Q&A.
+- 🤖 [08. Modern Senior Java Interview Pattern & AI-Assisted Prep Guide (2025–2026)](Senior-Java-7Plus-Guide/08-Modern-Interview-Pattern-AI-Roundwise-Guide.md) — Round-by-round breakdown, AI-assisted coding/pair programming, PR teardowns, Spring AI & RAG architectures, and STAR behavioral leadership.
+- ⚡ [09. Ultimate Senior Java Daily 30-Minute Revision Master Cheat Sheet](Senior-Java-7Plus-Guide/09-Ultimate-Daily-Revision-Cheatsheet.md) — Ultra-dense rapid revision cheat sheet covering Virtual Threads, HikariCP formulas, Outbox/Saga, JVM OOM/Thread dumps, Security 6, and System Design capacity formulas in one place.
 
 ---
 
