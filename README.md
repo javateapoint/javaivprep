@@ -1,47 +1,62 @@
+# Master Java & Senior Backend Engineering Interview Prep Suite
 
-# Java Interview Questions Asked 2025
+Welcome to the **Master Java & Senior Backend Engineering Repository**. This repository contains production guides, architecture cheat sheets, system design mega-guides, AI agent suites, and interview preparation materials covering **Java 17/21**, **Spring Boot 3.x**, **Microservices**, **Kafka**, **Redis**, **DevSecOps**, **SRE**, and **System Design**.
 
-## Coding:
-- Find longest non repeating substring from given String 
+---
 
-- Find Frequeny/Count of each character in a String using Java 8 Stream Api  [abccddae]
+## 📚 Master Topic Index
 
-- Find Frequeny/Count of each word in a String using Java 8 Stream Api  [hello i am hello i am John]
+### 1. Core Java & Concurrency
+- 📖 [240 Core Java Questions & Answers](240QuesJava.md) — Fundamental questions on JVM, OOP, collections, and primitives.
+- ⚡ [Java 17 LTS Features Guide](Java%2017%20Features.md) — Records, Sealed Classes, Pattern Matching, Text Blocks, and PRNGs.
+- 🔄 [CompletableFuture & Spring Async Guide](CompletableFutureSpringboot.md) — Asynchronous pipeline composition, thread pools, and error handling.
+- 🗑️ [JVM Memory & Garbage Collection Guide](GarbageCollector.md) — Heap structure, G1GC, Generational ZGC, and GC tuning flags.
+- 📦 [Java Serialization vs Externalizable](Serializable.md) — Binary serialization, `serialVersionUID`, and modern JSON/Protobuf alternatives.
+- 📊 [Java Collections Time & Space Complexity](JavaCollecTimeAndSpaceComplexity.md) & [Java Collections Master Guide](JavaCollections.md) — Data structures, internal hashing mechanics, and thread safety.
+- 🔢 [XOR Bitwise Operations Deep Dive](Nov%202025/XOR-Deep-Dive-Java.md) — Bitwise math, missing numbers, and single-number problems.
+- 🌊 [Java Stream API 2025 Guide](Nov%202025/java-stream-api-interview-guide-2025.md) — Stream operations, collector grouping, mapping, and parallel streams.
 
-- Remove duplicates from a List<Integer> using Java 8 Stream Api
+---
 
-- Find Group of Anagrams String input = "cat,dog,god,ast,ogd,gdo,sat,tas,tac";
+### 2. Spring Boot 3.x & Framework Engineering
+- 🔁 [Spring Bean Lifecycle & Callback Hooks](SpringBeanLifeCycle.md) — Initializing hooks, `BeanPostProcessor`, `@PostConstruct`, and AOP proxies.
+- ⚙️ [Spring Boot Auto-Configuration & Startup](SpringbootAutoConfiguration.md) — `AutoConfiguration.imports`, conditional bean loading, and starter development.
+- 🌐 [Spring WebClient Guide](WebClient.md) — Reactive non-blocking HTTP requests, error handling, retries, and exchange filters.
+- 📜 [HTTP Status Codes in REST API Design](HttpStatusCodesRestAPI.md) — RFC 7807 problem details, 202 Accepted async workflows, and status codes.
+- 🔒 [Optimistic vs. Pessimistic Locking](OptimisticPessimisticLocking.md) — Preventing oversells with `@Version`, `@Lock(PESSIMISTIC_WRITE)`, and Redisson.
+- 🚀 [Redis Caching & Spring Boot Integration](RedisCache%20Springboot.md) & [Redis Architecture](RedisCache.md) — Eviction policies, cache stampede prevention, Lettuce vs Redisson.
+- 📦 [Maven Dependency Scopes & Transitive Resolution](maven.md) — Dependency tree management, exclusions, BOM imports, and scope matrix.
+- 🔄 [Spring Batch Complete Course](Nov%202025/Spring-Batch-Complete-Course.md) & [Production Guide](Nov%202025/Spring-Batch-Production-Guide.md) — Chunk processing, partitioners, skip/retry policies.
 
-//  Given a list of sentences, find the top 5 most frequent words longer than 3 characters, case insensitive
+---
 
-        List<String> sentences = Arrays.asList(
-                "The quick brown fox jumps over the lazy dog",
-                "Pack my box with five dozen liquor jugs",
-                "How vexingly quick daft zebras jump"
-        );
-		
-- ReverseAnArray without using any inbuilt function
+### 3. Distributed Systems, Microservices & Messaging
+- 💬 [Apache Kafka Event-Driven Microservices](ApacheKafka.md) — Producer/Consumer architecture, partition reassignment, consumer rebalancing.
+- 🧱 [Monolith to Microservices Migration Guide](Monolith%20to%20Microservices.md) — Strangler fig pattern, domain decomposition, event-driven decoupling.
+- 🚦 [Rate Limiting & API Gateway Design](Rate%20Limit%20Api%20Gateway.md) — Token Bucket, Leaky Bucket, Sliding Window algorithms, and Spring Cloud Gateway.
+- 🛡️ [Spring Boot Microservices Production Scenarios](April%202026/spring-micro-prod-scenarios-deep.md) — Circuit breakers (Resilience4j), distributed tracing, and fault tolerance.
 
-- Find pair of digits whose sum =8 input = [1,2,3,4,5,6,7]
+---
 
-- You have N prisoners sitting in a circle, numbered from 1 to N. The warden has M sweets and will distribute them starting from prisoner S.The sweets are passed sequentially in a circle. The prisoner who receives the last sweet needs to be determined
+### 4. System Design, Object-Oriented Design & SRE
+- 🏗️ [System Design Mega Guide](Nov%202025/System-Design-Mega-Guide.md) — High-availability architectures, scaling strategies, and CAP theorem.
+- 📐 [LLD Master Guide for Java](Nov%202025/LLD-Master-Guide-Java.md) — Low-Level Design interview problems, class diagrams, and modular designs.
+- 🧩 [Design Patterns in Java](Nov%202025/Design-Patterns-Java.md) — Creational, Structural, and Behavioral design patterns with code.
+- 📐 [SOLID Principles Guide](Nov%202025/SOLID-Principles-Java.md) — Single Responsibility, Open-Closed, Liskov Substitution, Interface Segregation, Dependency Inversion.
+- 🛑 [OS Signals & Graceful Shutdown Guide](Nov%202025/signals-shutdown-guide.md) — SIGTERM vs SIGKILL, JVM shutdown hooks, and Kubernetes container teardown.
+- 🔍 [Splunk RCA Cheatsheet for Spring Boot](Splunk/splunk-cheatsheet-springboot-rca.md) — Log search, SPL queries, thread dump diagnostics, and root cause analysis.
 
-- Given A String "hello i am developer" -> first letter of every word should be capital
+---
 
-- Merge 2 Sorted Arrays
+### 5. Custom AI Agents & Tooling
+- 🤖 [Custom GitHub Copilot AI Agent Suite](custom-ai-agent/README.md) — Enterprise suite of 6 agent personas, modular skills, and caveman token optimization.
+- 🧰 [OpenSource AI Agent Toolkit 2026 Guide](OpenSource%20Ai/opensource-ai-agent-toolkit-2026.md) — Building agentic workflows with open-source tools.
 
-- Bubble Sort and Quick Sort Pseudo Code
+---
 
-- How would you design least recently used cache [LRU], initial  capacity should be configurable and if capacity exceeds LRU element should be removed
-
-- Find first non repeating Character in String
-  
-- Finds the pivot element in the array where the sum of elements to the left equals the sum of elements to the right. If no such pivot exists, returns 0.
-
-## Questions on Java Stream Api if Employee Class is Given:
-- Find max sal of employee
-- Find 3rd max salary of employee
-- Group Employees with Dept
-- Find Average Salary of Each Department
-
-  
+### 6. Real-World Interview Question Collections
+- 📝 [Java Interview Questions Asked 2025 (Part 1)](Java%20Interview%20Questions%20Asked%202025%20P1.md) — Real interview questions asked in 2025 with complete solutions.
+- 📝 [Java Interview Questions Asked 2025 (Part 2)](Create%20Java%20Interview%20Questions%20Asked%202025%20P2.md) — Advanced interview scenario questions.
+- 💻 [Coding Questions Practice Collection](Coding%20Questions%20May-Jul-2025.md) — Algorithms, string manipulation, run-length decoding, permutations.
+- 💼 [Senior Java Backend Interview Master Guide](Nov%202025/senior-java-backend-interview-guide-2025.md) — Senior engineer interview preparation.
+- ⏱️ [Time & Space Complexity Reference Guide](Nov%202025/Time-Space-Complexity.md) — Big O notation reference.
