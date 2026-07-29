@@ -4,7 +4,21 @@ Welcome to the **Master Java & Senior Backend Engineering Repository**. This rep
 
 ---
 
-## 📚 Master Topic Index
+## 🌟 Senior Java (7+ YOE) Master Interview Suite
+
+A dedicated, production-grade master suite engineered specifically for Senior, Lead, and Principal Software Engineers:
+
+- 🚀 [01. Java 21 Virtual Threads & Modern Concurrency Guide](Senior-Java-7Plus-Guide/01-Java21-Virtual-Threads-Concurrency.md) — Project Loom, Carrier Threads, Thread Pinning refactoring (`synchronized` $\rightarrow$ `ReentrantLock`), Structured Concurrency (`StructuredTaskScope`), Scoped Values, and Sequenced Collections.
+- 🛢️ [02. Database Tuning, HikariCP & JPA Transactions Guide](Senior-Java-7Plus-Guide/02-Database-Tuning-HikariCP-JPA-Transactions.md) — HikariCP pool sizing formula, leak detection, `@Transactional` isolation & propagation, N+1 query elimination (`JOIN FETCH`, `@EntityGraph`, Projections), and `EXPLAIN ANALYZE` profiling.
+- 🔄 [03. Distributed Transactions, Saga & Outbox Pattern Guide](Senior-Java-7Plus-Guide/03-Distributed-Transactions-Saga-Outbox-Pattern.md) — Dual-write problem, Transactional Outbox + Debezium CDC, Saga Orchestration vs Choreography, Compensating transactions, and Idempotency keys.
+- 🔍 [04. JVM Production Diagnostics: Memory & Thread Dumps Guide](Senior-Java-7Plus-Guide/04-JVM-Production-Diagnostics-Memory-Thread-Dumps.md) — OOM variants (`Java heap space`, `Metaspace`, `Direct buffer memory`), Eclipse MAT retained heap analysis, mapping Linux `top -H` LWP ID to `jstack` hex `nid`, JFR, and async-profiler.
+- 🛡️ [05. Resilience4j, Distributed Tracing & Observability Guide](Senior-Java-7Plus-Guide/05-Resilience4j-Distributed-Tracing-Observability.md) — Circuit Breaker states (`CLOSED`, `OPEN`, `HALF_OPEN`), Rate Limiter, Bulkheads, Exponential Backoff + Jitter, W3C `traceparent` headers, Micrometer Tracing, and `MDC` context propagation.
+- 🔒 [06. OAuth2, Spring Security 6.x & DevSecOps Guide](Senior-Java-7Plus-Guide/06-OAuth2-Spring-Security6-DevSecOps.md) — PKCE Authorization Code flow, JWKS validation, stateless `SecurityFilterChain`, custom `OncePerRequestFilter`, and OWASP API Top 10 (BOLA/IDOR, BFLA, SQLi).
+- 🏗️ [07. Senior System Design Production Blueprints Guide](Senior-Java-7Plus-Guide/07-System-Design-Production-Blueprints-7Plus.md) — High-throughput Idempotent Payment Gateway and Multi-Channel Notification Engine architectures with diagrams, DB schemas, and trade-off Q&A.
+
+---
+
+## 📚 General Topic Index
 
 ### 1. Core Java & Concurrency
 - 📖 [240 Core Java Questions & Answers](240QuesJava.md) — Fundamental questions on JVM, OOP, collections, and primitives.
