@@ -17,6 +17,7 @@ A dedicated, production-grade master suite engineered specifically for Senior, L
 - 🏗️ [07. Senior System Design Production Blueprints Guide](Senior-Java-7Plus-Guide/07-System-Design-Production-Blueprints-7Plus.md) — High-throughput Idempotent Payment Gateway and Multi-Channel Notification Engine architectures with diagrams, DB schemas, and trade-off Q&A.
 - 🤖 [08. Modern Senior Java Interview Pattern & AI-Assisted Prep Guide (2025–2026)](Senior-Java-7Plus-Guide/08-Modern-Interview-Pattern-AI-Roundwise-Guide.md) — Round-by-round breakdown, AI-assisted coding/pair programming, PR teardowns, Spring AI & RAG architectures, and STAR behavioral leadership.
 - ⚡ [09. Ultimate Senior Java Daily 30-Minute Revision Master Cheat Sheet](Senior-Java-7Plus-Guide/09-Ultimate-Daily-Revision-Cheatsheet.md) — Ultra-dense rapid revision cheat sheet covering Virtual Threads, HikariCP formulas, Outbox/Saga, JVM OOM/Thread dumps, Security 6, and System Design capacity formulas in one place.
+- 🧠 [10. End-to-End AI & LLM Engineering Master Cheat Sheet](Senior-Java-7Plus-Guide/10-End-To-End-AI-LLM-Master-Cheatsheet.md) — Transformers, Self-Attention ($Q,K,V$), RAG Architecture, Vector DBs (Pgvector/HNSW), AI Agents (ReAct), MCP Protocol, and Spring Boot 3 Function Calling.
 
 ---
 
